@@ -100,5 +100,3 @@
 *   **Ошибки Google API `404 Not Found`:** Неправильный `SPREADSHEET_ID` указан в `.env`.
 *   **Ошибки отправки сообщений (от API провайдера):** Проверьте правильность `TOKEN` (URL/ключа) в `.env`, статус вашего аккаунта у API провайдера, не нарушает ли текст сообщения правила WhatsApp, не превышены ли лимиты отправки. Изучите ответ API, показанный в логах.
 *   **Ошибка `FileNotFoundError: [Errno 2] No such file or directory: 'service_account.json'`:** Файл `service_account.json` не найден в корне проекта, или значение `SERVICE_ACCOUNT_FILE` в `.env` указано неверно.
-
-## Структура Проекта
