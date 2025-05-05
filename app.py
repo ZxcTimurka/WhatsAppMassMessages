@@ -141,20 +141,18 @@ def send_message(api_url, phone_number, message, logs_list):
 
     try:
         log_message(logs_list, f"Отправка сообщения на {chat_id}...")
-        # Увеличиваем таймаут, т.к. API может отвечать не мгновенно
         response = requests.post(
             api_url, json=payload, headers=headers, timeout=60)
-        response.raise_for_status()  # Вызовет исключение для кодов 4xx/5xx
+        response.raise_for_status()
 
         response_text = "Не удалось декодировать ответ API"
         try:
-            # Пытаемся декодировать ответ, как в оригинальном коде
             response_text = response.text.encode('latin1').decode('utf8')
         except UnicodeDecodeError:
             try:
                 response_text = response.text.encode('utf-8').decode('utf-8')
             except Exception:
-                response_text = response.text  # Если ничего не помогло, показываем как есть
+                response_text = response.text
 
         log_message(
             logs_list, f"  Успешно отправлено на {chat_id}. Ответ API: {response_text}", "success")
@@ -206,9 +204,9 @@ def create_google_service(logs_list):
 
       
 def create_new_report_sheet(service, spreadsheet_id, sheet_title, logs_list):
-    """Создает новый лист в Google Таблице для отчета (в конце).""" # Обновили docstring
+    """Создает новый лист в Google Таблице для отчета (в конце).""" 
     try:
-        log_message(logs_list, f"Попытка создать новый лист с именем: '{sheet_title}' (в конце)") # Обновили лог
+        log_message(logs_list, f"Попытка создать новый лист с именем: '{sheet_title}' (в конце)")
         requests_body = {
             'requests': [{
                 'addSheet': {
@@ -222,7 +220,6 @@ def create_new_report_sheet(service, spreadsheet_id, sheet_title, logs_list):
             spreadsheetId=spreadsheet_id,
             body=requests_body
         ).execute()
-        # Можно немного уточнить лог, что лист добавлен в конец
         log_message(logs_list, f"Успешно создан лист отчета: '{sheet_title}' (добавлен в конец)", "success")
         return True
     except HttpError as err:
@@ -299,7 +296,6 @@ def check_google_sheet_access():
             logs_check, f"Check Access: Successfully read data. Found {num_rows} rows in range.")
 
         # Дополнительная проверка возможности записи (не выполняя запись)
-        # Это менее надежно, но может дать подсказку пользователю
         try:
             creds_write = service_account.Credentials.from_service_account_file(
                 SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/spreadsheets'])
@@ -344,7 +340,6 @@ def index():
     error = None
     if not API_URL or API_URL == "TOKEN":
         error = "Ошибка: Не указан API_URL в настройках (.env)!"
-    # Убираем проверки Google Sheets отсюда, есть кнопка
     return render_template('index.html',
                            default_message=DEFAULT_MESSAGE_TEXT,
                            default_delay=DEFAULT_DELAY_BETWEEN_MESSAGES,
@@ -408,7 +403,6 @@ def send_messages_route():
             report_sheet_title = datetime.now().strftime("%d.%m.%y %H:%M:%S")
             report_info["sheet_title"] = report_sheet_title
             if create_new_report_sheet(service, SPREADSHEET_ID, report_sheet_title, logs):
-                # Двойные скобки для .append
                 header_row = [["№", "Number", "Name", "Status", "Time"]]
                 if write_report_to_sheet(service, SPREADSHEET_ID, report_sheet_title, header_row, logs):
                     reporting_enabled = True
@@ -449,11 +443,8 @@ def send_messages_route():
                 status = "Отправлено" if success else "Не отправлено"
                 report_row = [i + 1, number, "", status,
                               report_time]  # Name пока пустое
-                # Пишем строку сразу
                 write_report_to_sheet(
                     service, SPREADSHEET_ID, report_sheet_title, [report_row], logs)
-                # Или накапливаем для пакетной записи в конце (менее надежно при сбоях)
-                # rows_to_report.append(report_row)
 
             if success:
                 successful_sends += 1
@@ -463,11 +454,6 @@ def send_messages_route():
             if i < total_processed - 1 and delay > 0:
                 log_message(logs, f"  Пауза {delay} сек...")
                 time.sleep(delay)
-
-        # Если накапливали строки для отчета, записать их сейчас
-        # if reporting_enabled and service and report_sheet_title and rows_to_report:
-        #    log_message(logs, f"Запись {len(rows_to_report)} строк в итоговый отчет...")
-        #    write_report_to_sheet(service, SPREADSHEET_ID, report_sheet_title, rows_to_report, logs)
 
         log_message(logs, "=" * 30)
         log_message(logs, "Рассылка завершена.")
