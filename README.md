@@ -46,11 +46,10 @@
     ```
 
 2.  **Создать и активировать виртуальное окружение** (рекомендуется):
-    *   Windows:
-        ```bash
-        python -m venv venv
-        .\venv\Scripts\activate
-        ```
+      ```bash
+      python -m venv venv
+      .\venv\Scripts\activate
+      ```
 
 3.  **Установить зависимости**:
     ```bash
