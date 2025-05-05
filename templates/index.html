@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запуск Рассылки WhatsApp</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: auto; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        textarea { width: 100%; min-height: 100px; margin-bottom: 15px; padding: 8px; box-sizing: border-box; }
+        input[type="number"] { width: 60px; margin-bottom: 15px; padding: 8px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; font-size: 16px; margin-right: 10px; margin-bottom: 10px; }
+        button:hover { background-color: #0056b3; }
+        button#check-access-btn { background-color: #6c757d; }
+        button#check-access-btn:hover { background-color: #5a6268; }
+        .loading { display: none; margin-top: 20px; font-weight: bold; color: #ff8c00; }
+        #error-message { color: red; font-weight: bold; margin-bottom: 15px; }
+        #check-access-result { margin-top: 15px; padding: 10px; border-radius: 4px; display: none; /* Скрыто по умолчанию */ }
+        #check-access-result.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        #check-access-result.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        #check-access-result.checking { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    </style>
+</head>
+<body>
+    <h1>Запуск Массовой Рассылки WhatsApp</h1>
+
+    {% if error %}
+        <p id="error-message">{{ error }}</p>
+    {% endif %}
+
+    <!-- Кнопка проверки доступа -->
+    <button type="button" id="check-access-btn">Проверить доступ к базе</button>
+    <!-- Место для вывода результата проверки -->
+    <div id="check-access-result"></div>
+
+    <hr style="margin: 20px 0;">
+
+    <form method="POST" action="/send" onsubmit="showLoading()">
+        <label for="message">Текст сообщения:</label>
+        <textarea id="message" name="message" required>{{ default_message }}</textarea>
+
+        <label for="delay">Задержка между сообщениями (сек):</label>
+        <input type="number" id="delay" name="delay" min="0" value="{{ default_delay }}" required>
+
+        <button type="submit">Начать Рассылку</button>
+    </form>
+
+    <div id="loading" class="loading">
+        Идет рассылка... Пожалуйста, подождите. Это может занять некоторое время. Не закрывайте страницу.
+    </div>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            // Скрываем результат проверки доступа при запуске рассылки
+            document.getElementById('check-access-result').style.display = 'none';
+        }
+
+        // Обработчик для кнопки проверки доступа
+        document.getElementById('check-access-btn').addEventListener('click', function() {
+            const resultDiv = document.getElementById('check-access-result');
+            resultDiv.textContent = 'Проверка подключения...';
+            resultDiv.className = 'checking'; // Сброс классов и установка стиля "проверка"
+            resultDiv.style.display = 'block'; // Показываем блок
+
+            fetch('/check_access') // Отправляем GET-запрос на новый эндпоинт
+                .then(response => {
+                    if (!response.ok) {
+                        // Ошибка сети или сервера (не 2xx статус)
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json(); // Парсим JSON ответ
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        resultDiv.textContent = `Доступ получен. Найдено строк для обработки: ${data.count}. Можно запускать рассылку.`;
+                        resultDiv.className = 'success'; // Стиль успеха
+                    } else {
+                        resultDiv.textContent = `Ошибка доступа к базе: ${data.message || 'Неизвестная ошибка'}. Обратитесь к Администратору.`;
+                        resultDiv.className = 'error'; // Стиль ошибки
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при проверке доступа:', error);
+                    resultDiv.textContent = 'Не удалось выполнить проверку. Ошибка сети или сервера. Подробности в консоли.';
+                    resultDiv.className = 'error'; // Стиль ошибки
+                });
+        });
+    </script>
+</body>
+</html>
