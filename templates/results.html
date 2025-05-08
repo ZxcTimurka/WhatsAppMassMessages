@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="ru">
 
@@ -95,3 +96,71 @@
 </body>
 
 </html>
+=======
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты Рассылки</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; max-width: 900px; margin: auto; }
+        h1, h2 { color: #333; }
+        .summary { background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .logs { max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; }
+        .log-entry { margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px dashed #eee; }
+        .log-entry.error { color: red; }
+        .log-entry.warning { color: orange; }
+        .log-entry.success { color: green; }
+        .log-entry.info { color: #555; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Результаты Рассылки WhatsApp</h1>
+
+    <div class="summary">
+        <h2>Итоги:</h2>
+        <p>Всего номеров в таблице обработано (валидных): {{ total_processed }}</p>
+        <p>Успешно отправлено: {{ successful_sends }}</p>
+        <p>Не удалось отправить: {{ failed_sends }}</p>
+        <p>Задержка между сообщениями: {{ delay }} сек.</p>
+        <p>Отправленное сообщение:</p>
+        <pre>{{ message_text }}</pre>
+    </div>
+
+    <h2>Лог выполнения:</h2>
+    <div class="logs">
+        {% for log in logs %}
+            <div class="log-entry {{ log.level }}">{{ log.message }}</div>
+        {% endfor %}
+    </div>
+
+    <p style="margin-top: 20px;"><a href="/">Вернуться на главную</a></p>
+
+    <h2>Статус Отчета Google Sheets</h2>
+{% if report_info %}
+    <p>
+        <strong>Состояние:</strong> {{ report_info.status }} <br>
+        {% if report_info.sheet_title %}
+        <strong>Имя листа:</strong> {{ report_info.sheet_title }}
+        {% endif %}
+    </p>
+    {% if report_info.status != 'Активно' and report_info.status != 'Отключено' %}
+        <p style="color: red;">Проверьте логи выше на наличие ошибок, связанных с Google Sheets, и убедитесь, что у сервисного аккаунта есть права редактора для таблицы.</p>
+    {% endif %}
+{% else %}
+    <p>Информация об отчете недоступна.</p>
+{% endif %}
+
+<h2>Логи Рассылки</h2>
+<div class="logs">
+    {% for log in logs %}
+        <p class="{{ log.level }}">{{ log.message }}</p>
+    {% endfor %}
+</div>
+
+</body>
+</html>
+>>>>>>> 49696dd1f3864486bc6b808b99b7c666a0e19435
