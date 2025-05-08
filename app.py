@@ -286,6 +286,33 @@ def create_new_report_sheet(service, target_spreadsheet_id, sheet_title, logs_li
         )
         return False
 
+def save_logs_to_file(logs_list):
+    """Сохраняет логи в файл в папке logs с текущей датой и временем в имени."""
+    try:
+        logs_dir = 'logs'
+        if not os.path.exists(logs_dir):
+            os.makedirs(logs_dir)
+        
+        timestamp = datetime.now().strftime("%d.%m.%y_%H-%M-%S")
+        log_filename = os.path.join(logs_dir, f"{timestamp}.log")
+        
+        with open(log_filename, 'w', encoding='utf-8') as f:
+            for entry in logs_list:
+                f.write(f"[{entry['level'].upper()}] {entry['message']}\n")
+        
+        # Добавляем запись об успешном сохранении в логи
+        logs_list.append({
+            "message": f"Логи сохранены в файл: {log_filename}", 
+            "level": "info"
+        })
+        return True
+    except Exception as e:
+        logs_list.append({
+            "message": f"Ошибка сохранения логов: {str(e)}", 
+            "level": "error"
+        })
+        return False
+
 
 def write_report_to_sheet(
     service, target_spreadsheet_id, sheet_title, data_rows, logs_list
@@ -666,6 +693,8 @@ def send_messages_route():
                 f"Отчет сохранен в Google Таблице (ID: {actual_report_spreadsheet_id}) на листе: '{report_sheet_title}'",
             )
         log_message(logs, "=" * 30)
+    
+    save_logs_to_file(logs)
 
     return render_template(
         "results.html",
@@ -683,6 +712,16 @@ def send_messages_route():
 if __name__ == "__main__":
     print("Проверка основных настроек...")
     critical_error = False
+
+    logs_dir = 'logs'
+    if not os.path.exists(logs_dir):
+        try:
+            os.makedirs(logs_dir)
+            print(f"Создана папка для логов: {logs_dir}")
+        except Exception as e:
+            print(f"Не удалось создать папку {logs_dir}: {e}")
+            critical_error = True
+
     if not API_URL or API_URL == "TOKEN":
         print(
             "!!! КРИТИЧЕСКАЯ ОШИБКА: Не указан TOKEN в .env! Рассылка работать не будет."
