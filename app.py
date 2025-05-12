@@ -286,14 +286,15 @@ def create_new_report_sheet(service, target_spreadsheet_id, sheet_title, logs_li
         )
         return False
 
-def save_logs_to_file(logs_list):
+def save_logs_to_file(logs_list, sheet_title):
     """Сохраняет логи в файл в папке logs с текущей датой и временем в имени."""
     try:
         logs_dir = 'logs'
         if not os.path.exists(logs_dir):
             os.makedirs(logs_dir)
         
-        timestamp = datetime.now().strftime("%d.%m.%y_%H-%M-%S")
+        # timestamp = datetime.now().strftime("%d.%m.%y_%H-%M-%S")
+        timestamp = sheet_title
         log_filename = os.path.join(logs_dir, f"{timestamp}.log")
         
         with open(log_filename, 'w', encoding='utf-8') as f:
@@ -694,7 +695,7 @@ def send_messages_route():
             )
         log_message(logs, "=" * 30)
     
-    save_logs_to_file(logs)
+    save_logs_to_file(logs, report_sheet_title)
 
     return render_template(
         "results.html",
